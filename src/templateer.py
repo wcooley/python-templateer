@@ -1,0 +1,101 @@
+"""
+Simple pure-Python, dependency-free template processor.
+
+Template variables are surrounded by `@@`. Template variables can be passed
+in the environment:
+
+    VAR1=foo templateer -t example-with-var1.txt -o output.txt
+
+If not provided in the environment, templateer will prompt the user for values.
+"""
+
+import argparse
+import os
+import re
+from typing import ChainMap, List, Mapping
+
+
+def parse_template(template: str) -> List[str]:
+    variables = []
+    for result in re.findall('@@(\w+)@@', template):
+        if result not in variables:
+            variables.append(result)
+
+    return variables
+
+
+def prompt_variables(variables: List[str]) -> Mapping[str, str]:
+    variables_map = {}
+    for variable in variables:
+        variables_map[variable] = input(f'{variable} = ')
+
+    return variables_map
+
+
+def env_variables(variables: List[str]) -> Mapping[str, str]:
+    variables_map = {}
+    for variable in variables:
+        if variable in os.environ:
+            variables_map[variable] = os.environ[variable]
+
+    return variables_map
+
+
+def fill_variables(variables: List[str]) -> Mapping[str, str]:
+    env_vars = env_variables(variables)
+
+    for env_var in env_vars.keys():
+        try:
+            variables.remove(env_var)
+        except ValueError:
+            pass
+
+    input_vars = prompt_variables(variables)
+
+    return ChainMap(input_vars, env_vars)
+
+
+def expand_template(template: str, variables: Mapping[str, str]) -> str:
+    for key, value in variables.items():
+        template = template.replace(f'@@{key}@@', value)
+    return template
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+            description=__doc__,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument('--template', '-t', nargs='?',
+                        type=argparse.FileType('r'), required=True)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--output', '-o', nargs='?',
+                        type=argparse.FileType('w'))
+    group.add_argument('--list-variables', '--list', '-l',
+                       action='store_true',
+                        help='List available template variables')
+
+    return parser.parse_args()
+
+
+def output_variables(template: str):
+    variables = parse_template(template)
+    print('Variables:')
+    for variable in variables:
+        print(variable)
+
+
+def main():
+    args = parse_args()
+
+    template: str = args.template.read()
+
+    if args.list_variables:
+        output_variables(template)
+    else:
+        variables = fill_variables(parse_template(template))
+        args.output.write(expand_template(template, variables))
+
+
+if __name__ == '__main__':
+    main()

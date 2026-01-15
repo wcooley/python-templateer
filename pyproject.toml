@@ -1,0 +1,15 @@
+[project]
+name = 'templateer'
+description = 'Simple template processor'
+version = '1.0.0'
+requires-python = '>= 3.8'
+authors = [
+    { name = 'Wil Cooley', email = 'wcooley@nakedape.cc' },
+]
+
+[project.scripts]
+templateer = 'templateer:main'
+
+[build-system]
+requires = ['setuptools == 75.3.2']
+build-backend = 'setuptools.build_meta'
