@@ -32,11 +32,11 @@ def prompt_variables(variables: List[str]) -> Mapping[str, str]:
     return variables_map
 
 
-def env_variables(variables: List[str]) -> Mapping[str, str]:
+def env_variables(variables: List[str], env=os.environ) -> Mapping[str, str]:
     variables_map = {}
     for variable in variables:
-        if variable in os.environ:
-            variables_map[variable] = os.environ[variable]
+        if variable in env:
+            variables_map[variable] = env[variable]
 
     return variables_map
 
