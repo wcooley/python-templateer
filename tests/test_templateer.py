@@ -15,14 +15,14 @@ def test_env_variables():
 
 def test_ini_variables():
     variables = ["name", "place"]
-    ini_content = "[templateer]\nname = World\n"
+    ini_content = "name = World\n"
     ini_file = io.StringIO(ini_content)
     ini_vars = templateer.ini_variables(variables, ini_file)
     assert ini_vars == {"name": "World"}
 
 def test_fill_variables_with_ini():
     variables = ["name", "place"]
-    ini_content = "[templateer]\nname = World\n"
+    ini_content = "name = World\n"
     ini_file = io.StringIO(ini_content)
     
     # Mock prompt_variables to avoid waiting for user input
@@ -43,7 +43,7 @@ def test_integration_with_input_file(monkeypatch, tmp_path):
     template_file = tmp_path / "template.txt"
     template_file.write_text(template_content)
 
-    ini_content = "[templateer]\nname = from file\n"
+    ini_content = "name = from file\n"
     ini_file = tmp_path / "vars.ini"
     ini_file.write_text(ini_content)
 

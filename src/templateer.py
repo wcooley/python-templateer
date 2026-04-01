@@ -11,6 +11,7 @@ If not provided in the environment, templateer will prompt the user for values.
 
 import argparse
 import configparser
+import itertools
 import os
 import re
 from typing import ChainMap, List, Mapping
@@ -47,7 +48,8 @@ def ini_variables(variables: List[str], file) -> Mapping[str, str]:
         return {}
 
     config = configparser.ConfigParser()
-    config.read_file(file)
+    # Prepend a [templateer] section so the input does not need one
+    config.read_file(itertools.chain(['[templateer]'], file))
 
     variables_map = {}
     # Variables are in the [templateer] section
@@ -91,7 +93,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--template', '-t', nargs='?',
                         type=argparse.FileType('r'), required=True)
     parser.add_argument('--input', '-i', nargs='?',
-                        type=argparse.FileType('r'))
+                        type=argparse.FileType('r'),
+                        help='Variable input file. Formatted as env/ini-without-section.')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--output', '-o', nargs='?',
                         type=argparse.FileType('w'))
