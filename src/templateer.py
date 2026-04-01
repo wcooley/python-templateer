@@ -17,7 +17,7 @@ from typing import ChainMap, List, Mapping
 
 def parse_template(template: str) -> List[str]:
     variables = []
-    for result in re.findall('@@(\w+)@@', template):
+    for result in re.findall(r'@@(\w+)@@', template):
         if result not in variables:
             variables.append(result)
 
