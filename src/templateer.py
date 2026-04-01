@@ -10,6 +10,7 @@ If not provided in the environment, templateer will prompt the user for values.
 """
 
 import argparse
+import configparser
 import os
 import re
 from typing import ChainMap, List, Mapping
@@ -41,18 +42,39 @@ def env_variables(variables: List[str], env=os.environ) -> Mapping[str, str]:
     return variables_map
 
 
-def fill_variables(variables: List[str]) -> Mapping[str, str]:
-    env_vars = env_variables(variables)
+def ini_variables(variables: List[str], file) -> Mapping[str, str]:
+    if not file:
+        return {}
 
-    for env_var in env_vars.keys():
-        try:
-            variables.remove(env_var)
-        except ValueError:
-            pass
+    config = configparser.ConfigParser()
+    config.read_file(file)
 
-    input_vars = prompt_variables(variables)
+    variables_map = {}
+    # Variables are in the [templateer] section
+    if 'templateer' in config:
+        for variable in variables:
+            if variable in config['templateer']:
+                variables_map[variable] = config['templateer'][variable]
 
-    return ChainMap(input_vars, env_vars)
+    return variables_map
+
+
+def fill_variables(variables: List[str], input_file=None) -> Mapping[str, str]:
+    vars_to_process = list(variables)
+
+    env_map = env_variables(vars_to_process)
+    for var in env_map:
+        vars_to_process.remove(var)
+
+    ini_map = {}
+    if input_file:
+        ini_map = ini_variables(vars_to_process, input_file)
+        for var in ini_map:
+            vars_to_process.remove(var)
+
+    prompt_map = prompt_variables(vars_to_process)
+
+    return ChainMap(prompt_map, ini_map, env_map)
 
 
 def expand_template(template: str, variables: Mapping[str, str]) -> str:
@@ -68,6 +90,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument('--template', '-t', nargs='?',
                         type=argparse.FileType('r'), required=True)
+    parser.add_argument('--input', '-i', nargs='?',
+                        type=argparse.FileType('r'))
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--output', '-o', nargs='?',
                         type=argparse.FileType('w'))
@@ -93,7 +117,7 @@ def main():
     if args.list_variables:
         output_variables(template)
     else:
-        variables = fill_variables(parse_template(template))
+        variables = fill_variables(parse_template(template), args.input)
         args.output.write(expand_template(template, variables))
 
 
