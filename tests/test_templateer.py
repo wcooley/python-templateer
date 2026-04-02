@@ -1,5 +1,8 @@
 
 import io
+import os
+import subprocess
+from unittest.mock import patch, MagicMock
 import templateer
 
 def test_parse_template():
@@ -26,11 +29,10 @@ def test_fill_variables_with_ini():
     ini_file = io.StringIO(ini_content)
     
     # Mock prompt_variables to avoid waiting for user input
-    templateer.prompt_variables = lambda vars: {"place": "Universe"}
-    
-    all_vars = templateer.fill_variables(variables, ini_file)
-    assert all_vars["name"] == "World"
-    assert all_vars["place"] == "Universe"
+    with patch('templateer.prompt_variables', return_value={"place": "Universe"}):
+        all_vars = templateer.fill_variables(variables, ini_file)
+        assert all_vars["name"] == "World"
+        assert all_vars["place"] == "Universe"
 
 def test_expand_template():
     template = "Hello, @@name@@! Welcome to @@place@@."
@@ -66,3 +68,94 @@ def test_integration_with_input_file(monkeypatch, tmp_path):
     templateer.main()
 
     assert output_file.read_text() == "Hello, from file!"
+
+@patch('subprocess.run')
+def test_edit_flow(mock_subprocess_run, monkeypatch, tmp_path):
+    template_content = "Hello, @@name@@, welcome to @@place@@!"
+    template_file = tmp_path / "template.txt"
+    template_file.write_text(template_content)
+
+    output_file = tmp_path / "output.txt"
+
+    # Simulate the user editing the file
+    def side_effect(command, check):
+        editor_file_path = command[1]
+        with open(editor_file_path, 'w') as f:
+            f.write("name=edited_name\n")
+            f.write("place=edited_place\n")
+
+    mock_subprocess_run.side_effect = side_effect
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "templateer",
+            "-t",
+            str(template_file),
+            "-e",
+            "-o",
+            str(output_file),
+        ],
+    )
+    
+    # Set EDITOR environment variable for the test
+    monkeypatch.setenv("EDITOR", "my_editor")
+    monkeypatch.setenv("VISUAL", "my_editor")
+
+    templateer.main()
+
+    assert output_file.read_text() == "Hello, edited_name, welcome to edited_place!"
+    mock_subprocess_run.assert_called_once()
+    assert mock_subprocess_run.call_args[0][0][0] == "my_editor"
+
+@patch('subprocess.run')
+def test_edit_with_input_and_env(mock_subprocess_run, monkeypatch, tmp_path):
+    template_content = "Hello, @@name@@, welcome to @@place@@. Your role is @@role@@."
+    template_file = tmp_path / "template.txt"
+    template_file.write_text(template_content)
+
+    ini_content = "name = from_ini\nplace = from_ini\n"
+    ini_file = tmp_path / "vars.ini"
+    ini_file.write_text(ini_content)
+
+    output_file = tmp_path / "output.txt"
+
+    # Simulate the user editing the file
+    def side_effect(command, check):
+        editor_file_path = command[1]
+        # Check pre-population
+        with open(editor_file_path, 'r') as f:
+            content = f.read()
+            assert "name=from_env" in content # env overrides ini
+            assert "place=from_ini" in content # from ini
+            assert "role=" in content # empty value, not in env or ini
+        # Simulate edits
+        with open(editor_file_path, 'w') as f:
+            f.write("name=edited_name\n")
+            f.write("place=edited_place\n")
+            f.write("role=edited_role\n")
+
+    mock_subprocess_run.side_effect = side_effect
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "templateer",
+            "-t",
+            str(template_file),
+            "-i",
+            str(ini_file),
+            "-e",
+            "-o",
+            str(output_file),
+        ],
+    )
+    
+    monkeypatch.setenv("VISUAL", "my_editor")
+    monkeypatch.setenv("EDITOR", "my_editor")
+    monkeypatch.setenv("name", "from_env")
+
+    templateer.main()
+
+    assert output_file.read_text() == "Hello, edited_name, welcome to edited_place. Your role is edited_role."
+    mock_subprocess_run.assert_called_once()
