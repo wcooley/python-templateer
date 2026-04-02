@@ -20,14 +20,12 @@ from typing import ChainMap, List, Mapping
 
 
 def parse_template(template: str) -> List[str]:
-    """
-    Extracts variable names from a template string.
+    """Extracts variable names from a template string.
 
-    Args:
-        template: The template content, with variables denoted by @@var@@.
-
-    Returns:
-        A list of unique variable names found in the template.
+    :param template: The template content, with variables denoted by @@var@@.
+    :type template: str
+    :return: A list of unique variable names found in the template.
+    :rtype: List[str]
     """
     variables = []
     for result in re.findall(r'@@(\w+)@@', template):
@@ -38,14 +36,12 @@ def parse_template(template: str) -> List[str]:
 
 
 def prompt_variables(variables: List[str]) -> Mapping[str, str]:
-    """
-    Prompts the user to enter values for a list of variables.
+    """Prompts the user to enter values for a list of variables.
 
-    Args:
-        variables: A list of variable names to prompt for.
-
-    Returns:
-        A mapping of variable names to their user-provided values.
+    :param variables: A list of variable names to prompt for.
+    :type variables: List[str]
+    :return: A mapping of variable names to their user-provided values.
+    :rtype: Mapping[str, str]
     """
     variables_map = {}
     for variable in variables:
@@ -55,15 +51,14 @@ def prompt_variables(variables: List[str]) -> Mapping[str, str]:
 
 
 def env_variables(variables: List[str], env=os.environ) -> Mapping[str, str]:
-    """
-    Retrieves variable values from environment variables.
+    """Retrieves variable values from environment variables.
 
-    Args:
-        variables: A list of variable names to look for in the environment.
-        env: The environment to search in, defaults to os.environ.
-
-    Returns:
-        A mapping of variable names to their values if found in the environment.
+    :param variables: A list of variable names to look for in the environment.
+    :type variables: List[str]
+    :param env: The environment to search in, defaults to os.environ.
+    :type env: Mapping, optional
+    :return: A mapping of variable names to their values if found in the environment.
+    :rtype: Mapping[str, str]
     """
     variables_map = {}
     for variable in variables:
@@ -74,18 +69,17 @@ def env_variables(variables: List[str], env=os.environ) -> Mapping[str, str]:
 
 
 def ini_variables(variables: List[str], file) -> Mapping[str, str]:
-    """
-    Reads variable values from an INI-style file.
+    """Reads variable values from an INI-style file.
 
     The file is expected to have a [templateer] section, but this function
     will add one if it's missing.
 
-    Args:
-        variables: A list of variable names to look for in the file.
-        file: A file-like object to read from.
-
-    Returns:
-        A mapping of variable names to their values if found in the file.
+    :param variables: A list of variable names to look for in the file.
+    :type variables: List[str]
+    :param file: A file-like object to read from.
+    :type file: file
+    :return: A mapping of variable names to their values if found in the file.
+    :rtype: Mapping[str, str]
     """
     if not file:
         return {}
@@ -109,21 +103,21 @@ def ini_variables(variables: List[str], file) -> Mapping[str, str]:
 def fill_variables(
     variables: List[str], input_file=None, interactive=True
 ) -> Mapping[str, str]:
-    """
-    Orchestrates filling variables from different sources.
+    """Orchestrates filling variables from different sources.
 
     The precedence for variable values is:
     1. User prompt (if interactive)
     2. Environment variables
     3. INI file
 
-    Args:
-        variables: A list of variable names to fill.
-        input_file: A file-like object for an INI file.
-        interactive: If True, prompt the user for missing variables.
-
-    Returns:
-        A ChainMap containing the filled variables.
+    :param variables: A list of variable names to fill.
+    :type variables: List[str]
+    :param input_file: A file-like object for an INI file, defaults to None
+    :type input_file: file, optional
+    :param interactive: If True, prompt the user for missing variables, defaults to True
+    :type interactive: bool, optional
+    :return: A ChainMap containing the filled variables.
+    :rtype: Mapping[str, str]
     """
     env_map = env_variables(variables)
     ini_map = ini_variables(variables, input_file)
@@ -143,15 +137,14 @@ def fill_variables(
 
 
 def expand_template(template: str, variables: Mapping[str, str]) -> str:
-    """
-    Replaces placeholders in the template with their corresponding values.
+    """Replaces placeholders in the template with their corresponding values.
 
-    Args:
-        template: The template string.
-        variables: A mapping of variable names to their values.
-
-    Returns:
-        The expanded template string.
+    :param template: The template string.
+    :type template: str
+    :param variables: A mapping of variable names to their values.
+    :type variables: Mapping[str, str]
+    :return: The expanded template string.
+    :rtype: str
     """
     for key, value in variables.items():
         template = template.replace(f'@@{key}@@', value)
@@ -159,11 +152,10 @@ def expand_template(template: str, variables: Mapping[str, str]) -> str:
 
 
 def parse_args() -> argparse.Namespace:
-    """
-    Parses command-line arguments.
+    """Parses command-line arguments.
 
-    Returns:
-        An argparse.Namespace object containing the parsed arguments.
+    :return: An argparse.Namespace object containing the parsed arguments.
+    :rtype: argparse.Namespace
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -204,11 +196,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def output_variables(template: str):
-    """
-    Prints the variables found in a template.
+    """Prints the variables found in a template.
 
-    Args:
-        template: The template string.
+    :param template: The template string.
+    :type template: str
     """
     variables = parse_template(template)
     print('Variables:')
