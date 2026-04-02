@@ -18,3 +18,9 @@ build-backend = 'setuptools.build_meta'
 test = [
     'pytest',
 ]
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.format]
+quote-style = "single"
