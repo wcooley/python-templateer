@@ -71,8 +71,8 @@ def env_variables(variables: List[str], env=os.environ) -> Mapping[str, str]:
 def ini_variables(variables: List[str], file) -> Mapping[str, str]:
     """Reads variable values from an INI-style file.
 
-    The file is expected to have a [templateer] section, but this function
-    will add one if it's missing.
+    The file is expected to have no [templateer] section and can have no
+    section at all.
 
     :param variables: A list of variable names to look for in the file.
     :type variables: List[str]
