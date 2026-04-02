@@ -65,7 +65,9 @@ def ini_variables(variables: List[str], file) -> Mapping[str, str]:
     return variables_map
 
 
-def fill_variables(variables: List[str], input_file=None, interactive=True) -> Mapping[str, str]:
+def fill_variables(
+    variables: List[str], input_file=None, interactive=True
+) -> Mapping[str, str]:
     env_map = env_variables(variables)
     ini_map = ini_variables(variables, input_file)
 
@@ -91,23 +93,39 @@ def expand_template(template: str, variables: Mapping[str, str]) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-            description=__doc__,
-            formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument('--template', '-t', nargs='?',
-                        type=argparse.FileType('r'), required=True)
-    parser.add_argument('--input', '-i', nargs='?',
-                        type=argparse.FileType('r'),
-                        help='Variable input file. Formatted as env/ini-without-section.')
-    parser.add_argument('--edit', '-e', action='store_true',
-                        help='Edit variables interactively in an editor.')
+    parser.add_argument(
+        '--template',
+        '-t',
+        nargs='?',
+        type=argparse.FileType('r'),
+        required=True,
+    )
+    parser.add_argument(
+        '--input',
+        '-i',
+        nargs='?',
+        type=argparse.FileType('r'),
+        help='Variable input file. Formatted as env/ini-without-section.',
+    )
+    parser.add_argument(
+        '--edit',
+        '-e',
+        action='store_true',
+        help='Edit variables interactively in an editor.',
+    )
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--output', '-o', nargs='?',
-                        type=argparse.FileType('w'))
-    group.add_argument('--list-variables', '--list', '-l',
-                       action='store_true',
-                        help='List available template variables')
+    group.add_argument('--output', '-o', nargs='?', type=argparse.FileType('w'))
+    group.add_argument(
+        '--list-variables',
+        '--list',
+        '-l',
+        action='store_true',
+        help='List available template variables',
+    )
 
     return parser.parse_args()
 
@@ -133,12 +151,16 @@ def main():
 
     if args.edit:
         # Pre-populate with --input and environment variables
-        pre_populated_vars = fill_variables(template_vars, args.input, interactive=False)
+        pre_populated_vars = fill_variables(
+            template_vars, args.input, interactive=False
+        )
 
-        with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix=".ini") as tmpfile:
+        with tempfile.NamedTemporaryFile(
+            mode='w+', delete=False, suffix='.ini'
+        ) as tmpfile:
             for var in template_vars:
                 value = pre_populated_vars.get(var, '')
-                tmpfile.write(f"{var}={value}\n")
+                tmpfile.write(f'{var}={value}\n')
             tmpfile.flush()
             tmpfile_path = tmpfile.name
 
