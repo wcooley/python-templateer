@@ -20,6 +20,15 @@ from typing import ChainMap, List, Mapping
 
 
 def parse_template(template: str) -> List[str]:
+    """
+    Extracts variable names from a template string.
+
+    Args:
+        template: The template content, with variables denoted by @@var@@.
+
+    Returns:
+        A list of unique variable names found in the template.
+    """
     variables = []
     for result in re.findall(r'@@(\w+)@@', template):
         if result not in variables:
@@ -29,6 +38,15 @@ def parse_template(template: str) -> List[str]:
 
 
 def prompt_variables(variables: List[str]) -> Mapping[str, str]:
+    """
+    Prompts the user to enter values for a list of variables.
+
+    Args:
+        variables: A list of variable names to prompt for.
+
+    Returns:
+        A mapping of variable names to their user-provided values.
+    """
     variables_map = {}
     for variable in variables:
         variables_map[variable] = input(f'{variable} = ')
@@ -37,6 +55,16 @@ def prompt_variables(variables: List[str]) -> Mapping[str, str]:
 
 
 def env_variables(variables: List[str], env=os.environ) -> Mapping[str, str]:
+    """
+    Retrieves variable values from environment variables.
+
+    Args:
+        variables: A list of variable names to look for in the environment.
+        env: The environment to search in, defaults to os.environ.
+
+    Returns:
+        A mapping of variable names to their values if found in the environment.
+    """
     variables_map = {}
     for variable in variables:
         if variable in env:
@@ -46,6 +74,19 @@ def env_variables(variables: List[str], env=os.environ) -> Mapping[str, str]:
 
 
 def ini_variables(variables: List[str], file) -> Mapping[str, str]:
+    """
+    Reads variable values from an INI-style file.
+
+    The file is expected to have a [templateer] section, but this function
+    will add one if it's missing.
+
+    Args:
+        variables: A list of variable names to look for in the file.
+        file: A file-like object to read from.
+
+    Returns:
+        A mapping of variable names to their values if found in the file.
+    """
     if not file:
         return {}
 
@@ -68,6 +109,22 @@ def ini_variables(variables: List[str], file) -> Mapping[str, str]:
 def fill_variables(
     variables: List[str], input_file=None, interactive=True
 ) -> Mapping[str, str]:
+    """
+    Orchestrates filling variables from different sources.
+
+    The precedence for variable values is:
+    1. User prompt (if interactive)
+    2. Environment variables
+    3. INI file
+
+    Args:
+        variables: A list of variable names to fill.
+        input_file: A file-like object for an INI file.
+        interactive: If True, prompt the user for missing variables.
+
+    Returns:
+        A ChainMap containing the filled variables.
+    """
     env_map = env_variables(variables)
     ini_map = ini_variables(variables, input_file)
 
@@ -86,12 +143,28 @@ def fill_variables(
 
 
 def expand_template(template: str, variables: Mapping[str, str]) -> str:
+    """
+    Replaces placeholders in the template with their corresponding values.
+
+    Args:
+        template: The template string.
+        variables: A mapping of variable names to their values.
+
+    Returns:
+        The expanded template string.
+    """
     for key, value in variables.items():
         template = template.replace(f'@@{key}@@', value)
     return template
 
 
 def parse_args() -> argparse.Namespace:
+    """
+    Parses command-line arguments.
+
+    Returns:
+        An argparse.Namespace object containing the parsed arguments.
+    """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -131,6 +204,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def output_variables(template: str):
+    """
+    Prints the variables found in a template.
+
+    Args:
+        template: The template string.
+    """
     variables = parse_template(template)
     print('Variables:')
     for variable in variables:
@@ -138,6 +217,7 @@ def output_variables(template: str):
 
 
 def main():
+    """The main entry point of the script."""
     args = parse_args()
 
     template: str = args.template.read()

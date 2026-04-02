@@ -1,15 +1,18 @@
+"""Tests for the templateer script."""
 import io
 from unittest.mock import patch
 import templateer
 
 
 def test_parse_template():
+    """Verify that variables are correctly parsed from a template string."""
     template = 'Hello, @@name@@! Welcome to @@place@@.'
     variables = templateer.parse_template(template)
     assert variables == ['name', 'place']
 
 
 def test_env_variables():
+    """Verify that variables are correctly read from environment variables."""
     variables = ['name', 'place']
     env = {'name': 'World'}
     env_vars = templateer.env_variables(variables, env)
@@ -17,6 +20,7 @@ def test_env_variables():
 
 
 def test_ini_variables():
+    """Verify that variables are correctly read from an INI file."""
     variables = ['name', 'place']
     ini_content = 'name = World\n'
     ini_file = io.StringIO(ini_content)
@@ -25,6 +29,7 @@ def test_ini_variables():
 
 
 def test_fill_variables_with_ini():
+    """Verify that variables are filled from INI and user prompt correctly."""
     variables = ['name', 'place']
     ini_content = 'name = World\n'
     ini_file = io.StringIO(ini_content)
@@ -39,6 +44,7 @@ def test_fill_variables_with_ini():
 
 
 def test_expand_template():
+    """Verify that a template is correctly expanded with given variables."""
     template = 'Hello, @@name@@! Welcome to @@place@@.'
     variables = {'name': 'World', 'place': 'Universe'}
     expanded = templateer.expand_template(template, variables)
@@ -46,6 +52,7 @@ def test_expand_template():
 
 
 def test_integration_with_input_file(monkeypatch, tmp_path):
+    """Test the full flow with template, input, and output files."""
     template_content = 'Hello, @@name@@!'
     template_file = tmp_path / 'template.txt'
     template_file.write_text(template_content)
@@ -77,6 +84,7 @@ def test_integration_with_input_file(monkeypatch, tmp_path):
 
 @patch('subprocess.run')
 def test_edit_flow(mock_subprocess_run, monkeypatch, tmp_path):
+    """Test the --edit flow, simulating user input via an editor."""
     template_content = 'Hello, @@name@@, welcome to @@place@@!'
     template_file = tmp_path / 'template.txt'
     template_file.write_text(template_content)
@@ -120,6 +128,7 @@ def test_edit_flow(mock_subprocess_run, monkeypatch, tmp_path):
 
 @patch('subprocess.run')
 def test_edit_with_input_and_env(mock_subprocess_run, monkeypatch, tmp_path):
+    """Test --edit with pre-population from --input and environment variables."""
     template_content = (
         'Hello, @@name@@, welcome to @@place@@. Your role is @@role@@.'
     )
