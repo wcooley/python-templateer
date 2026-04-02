@@ -6,6 +6,7 @@ requires-python = '>= 3.8'
 authors = [
     { name = 'Wil Cooley', email = 'wcooley@nakedape.cc' },
 ]
+license = 'MIT'
 
 [project.scripts]
 templateer = 'templateer:main'

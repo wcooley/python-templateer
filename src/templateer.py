@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Wil Cooley
+# SPDX-License-Identifier: MIT
+
 """
 Simple pure-Python, dependency-free template processor.
 
@@ -37,6 +40,8 @@ But this does not:
     -bash: 1_VAR=xxx: command not found
 
 """
+
+__author__ = 'Wil Cooley <wcooley@nakedape.cc>'
 
 import argparse
 import configparser

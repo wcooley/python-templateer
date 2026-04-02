@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Wil Cooley
+# SPDX-License-Identifier: MIT
+
 """Tests for the templateer script."""
 import io
 from unittest.mock import patch
