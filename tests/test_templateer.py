@@ -1,7 +1,5 @@
 import io
-import os
-import subprocess
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import templateer
 
 
